@@ -1,0 +1,6 @@
+C:\Users\Kennard\Documents\Visual Studio 2013\Projects\SocksTcpClient\bin\Debug\SocksTcpClient.exe.config
+C:\Users\Kennard\Documents\Visual Studio 2013\Projects\SocksTcpClient\bin\Debug\SocksTcpClient.exe
+C:\Users\Kennard\Documents\Visual Studio 2013\Projects\SocksTcpClient\bin\Debug\SocksTcpClient.pdb
+C:\Users\Kennard\Documents\Visual Studio 2013\Projects\SocksTcpClient\obj\Debug\SocksTcpClient.csprojResolveAssemblyReference.cache
+C:\Users\Kennard\Documents\Visual Studio 2013\Projects\SocksTcpClient\obj\Debug\SocksTcpClient.exe
+C:\Users\Kennard\Documents\Visual Studio 2013\Projects\SocksTcpClient\obj\Debug\SocksTcpClient.pdb
