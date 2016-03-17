@@ -1,11 +1,12 @@
 ﻿using System.Linq;
 using System.Net.Sockets;
 using System.Net;
+using System.Text;
 
 namespace SocksTcpClient
 {
     public delegate void ClientStatusChangedEvent(object sender, string status);
-    
+
     class SocksTcpClient
     {
         public static event ClientStatusChangedEvent StatusChanged;
@@ -36,7 +37,7 @@ namespace SocksTcpClient
             "Command not supported!",
             "Address type not supported!"
         };
-        
+
         public static TcpClient Connect(string proxyHost, int proxyPort, string targetHost, int targetPort)
         {
             TcpClient SocksClient = new TcpClient();
@@ -49,7 +50,7 @@ namespace SocksTcpClient
             IPAddress targetHostAddress;
             if (!IPAddress.TryParse(targetHost, out targetHostAddress))
                 targetHostAddress = Dns.GetHostAddresses(targetHost).Where(ip => ip.AddressFamily == AddressFamily.InterNetwork).FirstOrDefault();
-            
+
             Socket socket = SocksClient.Client;
             socket.Connect(proxyEndPoint);
 
@@ -61,7 +62,7 @@ namespace SocksTcpClient
 
             return SocksClient;
         }
-        
+
         private static Socket Negotiate(Socket socket)
         {
             byte[] requestBytes = new byte[] { (byte)SocksType.Socks5, 0x03, (byte)Authentication.None, (byte)Authentication.GSSApi, (byte)Authentication.NoAcceptableMethods };
@@ -69,7 +70,7 @@ namespace SocksTcpClient
 
             socket.Send(requestBytes, requestBytes.Length, SocketFlags.None);
             int bytesReceived = socket.Receive(responseBytes, 2, SocketFlags.None);
-            
+
             if (bytesReceived == 2 && responseBytes[1] == (byte)Authentication.None)
             {
                 OnStatusChanged(socket, "Successfully negotiated with the proxy!");
@@ -80,18 +81,22 @@ namespace SocksTcpClient
             return null;
         }
 
-        private static Socket Handshake(Socket socket, IPAddress targetHost, int targetPort)
+        private static Socket Handshake(Socket socket, IPAddress targetHostAddress, int targetPort)
         {
             int i = 0;
-            byte[] addressBytes = targetHost.GetAddressBytes();
+            byte[] addressBytes = targetHostAddress.GetAddressBytes();
             byte[] portBytes = new byte[2] { (byte)(targetPort / 256), (byte)(targetPort % 256) };
             byte[] requestBytes = new byte[4 + addressBytes.Length + portBytes.Length];
             byte[] responseBytes = new byte[2];
             requestBytes[i++] = (byte)SocksType.Socks5;
             requestBytes[i++] = 0x01;
             requestBytes[i++] = 0x00;
-            requestBytes[i++] = 0x01;
-            
+
+            if (targetHostAddress.AddressFamily == AddressFamily.InterNetwork)
+                requestBytes[i++] = 0x01;
+            else if (targetHostAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                requestBytes[i++] = 0x04;
+
             addressBytes.CopyTo(requestBytes, i);
             i += addressBytes.Length;
 
@@ -105,7 +110,7 @@ namespace SocksTcpClient
 
             if (responseBytes[1] != 0x00)
                 return null;
-            
+
             return socket;
         }
 

@@ -11,7 +11,7 @@ namespace SocksTcpClient
         static void Main(string[] args)
         {
             SocksTcpClient.StatusChanged += SocksTcpClient_OnStatusChanged;
-            TcpClient client = SocksTcpClient.Connect("91.121.105.48", 1080, "94.215.86.127", 65432);
+            TcpClient client = SocksTcpClient.Connect("127.0.0.1", 9150, "94.215.86.127", 65432);
 
             NetworkStream stream = client.GetStream();
 
