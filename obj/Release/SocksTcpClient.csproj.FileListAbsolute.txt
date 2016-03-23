@@ -1,0 +1,5 @@
+C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\bin\Release\SocksTcpClient.dll.config
+C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\bin\Release\SocksTcpClient.dll
+C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\bin\Release\SocksTcpClient.pdb
+C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\obj\Release\SocksTcpClient.dll
+C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\obj\Release\SocksTcpClient.pdb

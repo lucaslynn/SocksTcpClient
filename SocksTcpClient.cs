@@ -3,11 +3,11 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 
-namespace SocksTcpClient
+namespace System.Net.Socks
 {
     public delegate void ClientStatusChangedEvent(object sender, string status);
 
-    class SocksTcpClient
+    public class SocksTcpClient
     {
         public static event ClientStatusChangedEvent StatusChanged;
 
@@ -25,8 +25,20 @@ namespace SocksTcpClient
             NoAcceptableMethods = 0xFF
         }
 
-        private static string[] errorMsgs = new string[]
+        private enum Method
         {
+            Connect = 0x01,
+            Bind = 0x02,
+            UDP = 0x03
+        }
+
+        private enum AddressType
+        {
+            IPv4 = 0x01,
+            IPv6 = 0x04
+        }
+
+        private static string[] errorMsgs = new string[] {
             "Successfully connected to remote host!",
             "General SOCKS server failure!",
             "Connection not allowed by ruleset!",
@@ -54,57 +66,63 @@ namespace SocksTcpClient
             Socket socket = SocksClient.Client;
             socket.Connect(proxyEndPoint);
 
-            socket = Negotiate(socket);
+            socket = Negotiate(socket, targetHostAddress, targetPort);
+
             if (socket == null)
                 return null;
-
-            socket = Handshake(socket, targetHostAddress, targetPort);
 
             return SocksClient;
         }
 
-        private static Socket Negotiate(Socket socket)
+        private static Socket Negotiate(Socket socket, IPAddress targetHostAddress, int targetPort)
         {
             byte[] requestBytes = new byte[] { (byte)SocksType.Socks5, 0x03, (byte)Authentication.None, (byte)Authentication.GSSApi, (byte)Authentication.NoAcceptableMethods };
             byte[] responseBytes = new byte[2];
 
             socket.Send(requestBytes, requestBytes.Length, SocketFlags.None);
-            int bytesReceived = socket.Receive(responseBytes, 2, SocketFlags.None);
+            int receivedBytes = socket.Receive(responseBytes, 2, SocketFlags.None);
 
-            if (bytesReceived == 2 && responseBytes[1] == (byte)Authentication.None)
+            if (receivedBytes < 2)
             {
-                OnStatusChanged(socket, "Successfully negotiated with the proxy!");
-                return socket;
+                OnStatusChanged(socket, "Bad proxy!");
+                return null;
             }
 
-            OnStatusChanged(socket, "Failed to negotiate with the proxy!");
-            return null;
+            if (responseBytes[0] == (byte)SocksType.Socks5 && responseBytes[1] == (byte)Authentication.None)
+            {
+                OnStatusChanged(socket, "Successfully negotiated with the proxy!");
+
+                socket = Handshake(socket, targetHostAddress, targetPort);
+
+                return socket;
+            }
+            else
+            {
+                OnStatusChanged(socket, "Failed to negotiate with the proxy!");
+                return null;
+            }
         }
 
         private static Socket Handshake(Socket socket, IPAddress targetHostAddress, int targetPort)
         {
-            int i = 0;
             byte[] addressBytes = targetHostAddress.GetAddressBytes();
             byte[] portBytes = new byte[2] { (byte)(targetPort / 256), (byte)(targetPort % 256) };
-            byte[] requestBytes = new byte[4 + addressBytes.Length + portBytes.Length];
+            byte[] requestBytes = new byte[10];
             byte[] responseBytes = new byte[2];
-            requestBytes[i++] = (byte)SocksType.Socks5;
-            requestBytes[i++] = 0x01;
-            requestBytes[i++] = 0x00;
+            requestBytes[0] = (byte)SocksType.Socks5;
+            requestBytes[1] = (byte)Method.Connect;
+            requestBytes[2] = 0x00;
 
             if (targetHostAddress.AddressFamily == AddressFamily.InterNetwork)
-                requestBytes[i++] = 0x01;
+                requestBytes[3] = (byte)AddressType.IPv4;
             else if (targetHostAddress.AddressFamily == AddressFamily.InterNetworkV6)
-                requestBytes[i++] = 0x04;
+                requestBytes[3] = (byte)AddressType.IPv6;
 
-            addressBytes.CopyTo(requestBytes, i);
-            i += addressBytes.Length;
+            addressBytes.CopyTo(requestBytes, 4);
+            portBytes.CopyTo(requestBytes, 8);
 
-            for (int b = 0; b < portBytes.Length; b++)
-                requestBytes[i++] = portBytes[b];
-
-            socket.Send(requestBytes, i, SocketFlags.None);
-            int receivedBytes = socket.Receive(responseBytes, SocketFlags.None);
+            socket.Send(requestBytes, 10, SocketFlags.None);
+            socket.Receive(responseBytes, SocketFlags.None);
 
             OnStatusChanged(socket, errorMsgs[responseBytes[1]]);
 

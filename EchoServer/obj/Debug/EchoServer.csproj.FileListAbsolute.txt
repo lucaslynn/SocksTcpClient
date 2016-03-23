@@ -1,5 +1,0 @@
-C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\EchoServer\bin\Debug\EchoServer.exe.config
-C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\EchoServer\bin\Debug\EchoServer.exe
-C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\EchoServer\bin\Debug\EchoServer.pdb
-C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\EchoServer\obj\Debug\EchoServer.exe
-C:\Users\Kennard\Documents\Visual Studio 2015\Projects\SocksTcpClient\EchoServer\obj\Debug\EchoServer.pdb
